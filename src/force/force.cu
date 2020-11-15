@@ -153,7 +153,7 @@ void Force::initialize_potential(
   } else if (strcmp(potential_name, "lj") == 0) {
     potential[m].reset(new LJ(fid_potential, num_types));
   } else if (strcmp(potential_name, "ri") == 0) {
-    potential[m].reset(new RI(fid_potential));
+    potential[m].reset(new RI(fid_potential, num_types));
   } else {
     PRINT_INPUT_ERROR("illegal potential model.\n");
   }

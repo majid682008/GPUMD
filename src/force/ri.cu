@@ -33,30 +33,255 @@ J. Chem. Phys. 124, 234104 (2006).
 #define RI_ALPHA_SQ 0.04
 #define RI_PI_FACTOR 0.225675833419103 // ALPHA * 2 / SQRT(PI)
 
-RI::RI(FILE* fid)
+RI::RI(FILE* fid, int num_types)
 {
   printf("Use the rigid-ion potential.\n");
-  double x[4][3];
-  for (int n = 0; n < 4; n++) {
-    int count = fscanf(fid, "%lf%lf%lf", &x[n][0], &x[n][1], &x[n][2]);
+
+  int N = num_types*(num_types+1)/2;
+
+  fscanf(fid, "%lf", &ri_para.cutoff);
+
+  double q[num_types];
+  for (int i = 0; i < num_types; i++) {
+    fscanf(fid, "%lf", &q[i]);
+  }
+
+  double x[N][3];
+  for (int i = 0; i < N; i++) {
+    int count = fscanf(fid, "%lf%lf%lf", &x[i][0], &x[i][1], &x[i][2]);
     PRINT_SCANF_ERROR(count, 3, "Reading error for rigid-ion potential.");
   }
-  ri_para.cutoff = x[0][2];
-  ri_para.qq11 = x[0][0] * x[0][0] * K_C;
-  ri_para.qq22 = x[0][1] * x[0][1] * K_C;
-  ri_para.qq12 = x[0][0] * x[0][1] * K_C;
-  ri_para.a11 = x[1][0];
-  ri_para.b11 = x[1][1];
-  ri_para.c11 = x[1][2];
-  ri_para.a22 = x[2][0];
-  ri_para.b22 = x[2][1];
-  ri_para.c22 = x[2][2];
-  ri_para.a12 = x[3][0];
-  ri_para.b12 = x[3][1];
-  ri_para.c12 = x[3][2];
-  ri_para.b11 = 1.0 / ri_para.b11;
-  ri_para.b22 = 1.0 / ri_para.b22;
-  ri_para.b12 = 1.0 / ri_para.b12;
+
+  if (num_types == 2){
+    ri_para.a11 = x[0][0];
+    ri_para.b11 = 1.0 / x[0][1];
+    ri_para.c11 = x[0][2];
+    ri_para.a12 = x[1][0];
+    ri_para.b12 = 1.0 / x[1][1];
+    ri_para.c12 = x[1][2];
+    ri_para.a22 = x[2][0];
+    ri_para.b22 = 1.0 / x[2][1];
+    ri_para.c22 = x[2][2];
+    ri_para.qq11 = q[0] * q[0] * K_C;
+    ri_para.qq12 = q[0] * q[1] * K_C;
+    ri_para.qq22 = q[1] * q[1] * K_C;
+  }
+  else if (num_types == 3){
+    ri_para.a11 = x[0][0];
+    ri_para.b11 = 1.0 / x[0][1];
+    ri_para.c11 = x[0][2];
+    ri_para.a12 = x[1][0];
+    ri_para.b12 = 1.0 / x[1][1];
+    ri_para.c12 = x[1][2];
+    ri_para.a13 = x[2][0];
+    ri_para.b13 = 1.0 / x[2][1];
+    ri_para.c13 = x[2][2];
+    ri_para.a22 = x[3][0];
+    ri_para.b22 = 1.0 / x[3][1];
+    ri_para.c22 = x[3][2];
+    ri_para.a23 = x[4][0];
+    ri_para.b23 = 1.0 / x[4][1];
+    ri_para.c23 = x[4][2];
+    ri_para.a33 = x[5][0];
+    ri_para.b33 = 1.0 / x[5][1];
+    ri_para.c33 = x[5][2];
+    ri_para.qq11 = q[0] * q[0] * K_C;
+    ri_para.qq12 = q[0] * q[1] * K_C;
+    ri_para.qq13 = q[0] * q[2] * K_C;
+    ri_para.qq22 = q[1] * q[1] * K_C;
+    ri_para.qq23 = q[1] * q[2] * K_C;
+    ri_para.qq33 = q[2] * q[2] * K_C;
+  }
+  else if (num_types == 4){
+    ri_para.a11 = x[0][0];
+    ri_para.b11 = 1.0 / x[0][1];
+    ri_para.c11 = x[0][2];
+    ri_para.a12 = x[1][0];
+    ri_para.b12 = 1.0 / x[1][1];
+    ri_para.c12 = x[1][2];
+    ri_para.a13 = x[2][0];
+    ri_para.b13 = 1.0 / x[2][1];
+    ri_para.c13 = x[2][2];
+    ri_para.a14 = x[3][0];
+    ri_para.b14 = 1.0 / x[3][1];
+    ri_para.c14 = x[3][2];
+    ri_para.a22 = x[4][0];
+    ri_para.b22 = 1.0 / x[4][1];
+    ri_para.c22 = x[4][2];
+    ri_para.a23 = x[5][0];
+    ri_para.b23 = 1.0 / x[5][1];
+    ri_para.c23 = x[5][2];
+    ri_para.a24 = x[6][0];
+    ri_para.b24 = 1.0 / x[6][1];
+    ri_para.c24 = x[6][2];
+    ri_para.a33 = x[7][0];
+    ri_para.b33 = 1.0 / x[7][1];
+    ri_para.c33 = x[7][2];
+    ri_para.a34 = x[8][0];
+    ri_para.b34 = 1.0 / x[8][1];
+    ri_para.c34 = x[8][2];
+    ri_para.a44 = x[9][0];
+    ri_para.b44 = 1.0 / x[9][1];
+    ri_para.c44 = x[9][2];
+    ri_para.qq11 = q[0] * q[0] * K_C;
+    ri_para.qq12 = q[0] * q[1] * K_C;
+    ri_para.qq13 = q[0] * q[2] * K_C;
+    ri_para.qq14 = q[0] * q[3] * K_C;
+    ri_para.qq22 = q[1] * q[1] * K_C;
+    ri_para.qq23 = q[1] * q[2] * K_C;
+    ri_para.qq24 = q[1] * q[3] * K_C;
+    ri_para.qq33 = q[2] * q[2] * K_C;
+    ri_para.qq34 = q[2] * q[3] * K_C;
+    ri_para.qq44 = q[3] * q[3] * K_C;
+  }
+  else if (num_types == 5){
+    ri_para.a11 = x[0][0];
+    ri_para.b11 = 1.0 / x[0][1];
+    ri_para.c11 = x[0][2];
+    ri_para.a12 = x[1][0];
+    ri_para.b12 = 1.0 / x[1][1];
+    ri_para.c12 = x[1][2];
+    ri_para.a13 = x[2][0];
+    ri_para.b13 = 1.0 / x[2][1];
+    ri_para.c13 = x[2][2];
+    ri_para.a14 = x[3][0];
+    ri_para.b14 = 1.0 / x[3][1];
+    ri_para.c14 = x[3][2];
+    ri_para.a15 = x[4][0];
+    ri_para.b15 = 1.0 / x[4][1];
+    ri_para.c15 = x[4][2];
+    ri_para.a22 = x[5][0];
+    ri_para.b22 = 1.0 / x[5][1];
+    ri_para.c22 = x[5][2];
+    ri_para.a23 = x[6][0];
+    ri_para.b23 = 1.0 / x[6][1];
+    ri_para.c23 = x[6][2];
+    ri_para.a24 = x[7][0];
+    ri_para.b24 = 1.0 / x[7][1];
+    ri_para.c24 = x[7][2];
+    ri_para.a25 = x[8][0];
+    ri_para.b25 = 1.0 / x[8][1];
+    ri_para.c25 = x[8][2];
+    ri_para.a33 = x[9][0];
+    ri_para.b33 = 1.0 / x[9][1];
+    ri_para.c33 = x[9][2];
+    ri_para.a34 = x[10][0];
+    ri_para.b34 = 1.0 / x[10][1];
+    ri_para.c34 = x[10][2];
+    ri_para.a35 = x[11][0];
+    ri_para.b35 = 1.0 / x[11][1];
+    ri_para.c35 = x[11][2];
+    ri_para.a44 = x[12][0];
+    ri_para.b44 = 1.0 / x[12][1];
+    ri_para.c44 = x[12][2];
+    ri_para.a45 = x[13][0];
+    ri_para.b45 = 1.0 / x[13][1];
+    ri_para.c45 = x[13][2];
+    ri_para.a55 = x[14][0];
+    ri_para.b55 = 1.0 / x[14][1];
+    ri_para.c55 = x[14][2];
+    ri_para.qq11 = q[0] * q[0] * K_C;
+    ri_para.qq12 = q[0] * q[1] * K_C;
+    ri_para.qq13 = q[0] * q[2] * K_C;
+    ri_para.qq14 = q[0] * q[3] * K_C;
+    ri_para.qq15 = q[0] * q[4] * K_C;
+    ri_para.qq22 = q[1] * q[1] * K_C;
+    ri_para.qq23 = q[1] * q[2] * K_C;
+    ri_para.qq24 = q[1] * q[3] * K_C;
+    ri_para.qq25 = q[1] * q[4] * K_C;
+    ri_para.qq33 = q[2] * q[2] * K_C;
+    ri_para.qq34 = q[2] * q[3] * K_C;
+    ri_para.qq35 = q[2] * q[4] * K_C;
+    ri_para.qq44 = q[3] * q[3] * K_C;
+    ri_para.qq45 = q[3] * q[4] * K_C;
+    ri_para.qq55 = q[4] * q[4] * K_C;
+  }
+  else if (num_types == 6){
+    ri_para.a11 = x[0][0];
+    ri_para.b11 = 1.0 / x[0][1];
+    ri_para.c11 = x[0][2];
+    ri_para.a12 = x[1][0];
+    ri_para.b12 = 1.0 / x[1][1];
+    ri_para.c12 = x[1][2];
+    ri_para.a13 = x[2][0];
+    ri_para.b13 = 1.0 / x[2][1];
+    ri_para.c13 = x[2][2];
+    ri_para.a14 = x[3][0];
+    ri_para.b14 = 1.0 / x[3][1];
+    ri_para.c14 = x[3][2];
+    ri_para.a15 = x[4][0];
+    ri_para.b15 = 1.0 / x[4][1];
+    ri_para.c15 = x[4][2];
+    ri_para.a16 = x[5][0];
+    ri_para.b16 = 1.0 / x[5][1];
+    ri_para.c16 = x[5][2];
+    ri_para.a22 = x[6][0];
+    ri_para.b22 = 1.0 / x[6][1];
+    ri_para.c22 = x[6][2];
+    ri_para.a23 = x[7][0];
+    ri_para.b23 = 1.0 / x[7][1];
+    ri_para.c23 = x[7][2];
+    ri_para.a24 = x[8][0];
+    ri_para.b24 = 1.0 / x[8][1];
+    ri_para.c24 = x[8][2];
+    ri_para.a25 = x[9][0];
+    ri_para.b25 = 1.0 / x[9][1];
+    ri_para.c25 = x[9][2];
+    ri_para.a26 = x[10][0];
+    ri_para.b26 = 1.0 / x[10][1];
+    ri_para.c26 = x[10][2];
+    ri_para.a33 = x[11][0];
+    ri_para.b33 = 1.0 / x[11][1];
+    ri_para.c33 = x[11][2];
+    ri_para.a34 = x[12][0];
+    ri_para.b34 = 1.0 / x[12][1];
+    ri_para.c34 = x[12][2];
+    ri_para.a35 = x[13][0];
+    ri_para.b35 = 1.0 / x[13][1];
+    ri_para.c35 = x[13][2];
+    ri_para.a36 = x[14][0];
+    ri_para.b36 = 1.0 / x[14][1];
+    ri_para.c36 = x[14][2];
+    ri_para.a44 = x[15][0];
+    ri_para.b44 = 1.0 / x[15][1];
+    ri_para.c44 = x[15][2];
+    ri_para.a45 = x[16][0];
+    ri_para.b45 = 1.0 / x[16][1];
+    ri_para.c45 = x[16][2];
+    ri_para.a46 = x[17][0];
+    ri_para.b46 = 1.0 / x[17][1];
+    ri_para.c46 = x[17][2];
+    ri_para.a55 = x[18][0];
+    ri_para.b55 = 1.0 / x[18][1];
+    ri_para.c55 = x[18][2];
+    ri_para.a56 = x[19][0];
+    ri_para.b56 = 1.0 / x[19][1];
+    ri_para.c56 = x[19][2];
+    ri_para.a66 = x[20][0];
+    ri_para.b66 = 1.0 / x[20][1];
+    ri_para.c66 = x[20][2];
+    ri_para.qq11 = q[0] * q[0] * K_C;
+    ri_para.qq12 = q[0] * q[1] * K_C;
+    ri_para.qq13 = q[0] * q[2] * K_C;
+    ri_para.qq14 = q[0] * q[3] * K_C;
+    ri_para.qq15 = q[0] * q[4] * K_C;
+    ri_para.qq16 = q[0] * q[5] * K_C;
+    ri_para.qq22 = q[1] * q[1] * K_C;
+    ri_para.qq23 = q[1] * q[2] * K_C;
+    ri_para.qq24 = q[1] * q[3] * K_C;
+    ri_para.qq25 = q[1] * q[4] * K_C;
+    ri_para.qq26 = q[1] * q[5] * K_C;
+    ri_para.qq33 = q[2] * q[2] * K_C;
+    ri_para.qq34 = q[2] * q[3] * K_C;
+    ri_para.qq35 = q[2] * q[4] * K_C;
+    ri_para.qq36 = q[2] * q[5] * K_C;
+    ri_para.qq44 = q[3] * q[3] * K_C;
+    ri_para.qq45 = q[3] * q[4] * K_C;
+    ri_para.qq46 = q[3] * q[5] * K_C;
+    ri_para.qq55 = q[4] * q[4] * K_C;
+    ri_para.qq56 = q[4] * q[5] * K_C;
+    ri_para.qq55 = q[5] * q[5] * K_C;
+  }
 
   rc = ri_para.cutoff; // force cutoff
 
@@ -75,21 +300,112 @@ static __device__ void
 find_p2_and_f2(int type1, int type2, RI_Para ri, double d12sq, double& p2, double& f2)
 {
   double a, b, c, qq;
+
   if (type1 == 0 && type2 == 0) {
     a = ri.a11;
     b = ri.b11;
     c = ri.c11;
     qq = ri.qq11;
+  } else if  ((type1 == 0 && type2 == 1) || (type1 == 1 && type2 == 0))  {
+    a = ri.a12;
+    b = ri.b12;
+    c = ri.c12;
+    qq = ri.qq12;
   } else if (type1 == 1 && type2 == 1) {
     a = ri.a22;
     b = ri.b22;
     c = ri.c22;
     qq = ri.qq22;
-  } else {
-    a = ri.a12;
-    b = ri.b12;
-    c = ri.c12;
-    qq = ri.qq12;
+  } else if  ((type1 == 0 && type2 == 2) || (type1 == 2 && type2 == 0))  {
+    a = ri.a13;
+    b = ri.b13;
+    c = ri.c13;
+    qq = ri.qq13;
+  } else if ((type1 == 1 && type2 == 2) || (type1 == 2 && type2 == 1))  {
+    a = ri.a23;
+    b = ri.b23;
+    c = ri.c23;
+    qq = ri.qq23;
+  } else if (type1 == 2 && type2 == 2) {
+    a = ri.a33;
+    b = ri.b33;
+    c = ri.c33;
+    qq = ri.qq33;
+  } else if  ((type1 == 0 && type2 == 3) || (type1 == 3 && type2 == 0))  {
+    a = ri.a14;
+    b = ri.b14;
+    c = ri.c14;
+    qq = ri.qq14;
+  } else if ((type1 == 1 && type2 == 3) || (type1 == 3 && type2 == 1))  {
+    a = ri.a24;
+    b = ri.b24;
+    c = ri.c24;
+    qq = ri.qq24;
+  } else if ((type1 == 2 && type2 == 3) || (type1 == 3 && type2 == 2))  {
+    a = ri.a34;
+    b = ri.b34;
+    c = ri.c34;
+    qq = ri.qq34;
+  } else if (type1 == 3 && type2 == 3) {
+    a = ri.a44;
+    b = ri.b44;
+    c = ri.c44;
+    qq = ri.qq44;
+  } else if  ((type1 == 0 && type2 == 4) || (type1 == 4 && type2 == 0))  {
+    a = ri.a15;
+    b = ri.b15;
+    c = ri.c15;
+    qq = ri.qq15;
+  } else if ((type1 == 1 && type2 == 4) || (type1 == 4 && type2 == 1))  {
+    a = ri.a25;
+    b = ri.b25;
+    c = ri.c25;
+    qq = ri.qq25;
+  } else if ((type1 == 2 && type2 == 4) || (type1 == 4 && type2 == 2))  {
+    a = ri.a35;
+    b = ri.b35;
+    c = ri.c35;
+    qq = ri.qq35;
+  } else if ((type1 == 3 && type2 == 4) || (type1 == 4 && type2 == 3))  {
+    a = ri.a45;
+    b = ri.b45;
+    c = ri.c45;
+    qq = ri.qq45;
+  } else if (type1 == 4 && type2 == 4) {
+    a = ri.a55;
+    b = ri.b55;
+    c = ri.c55;
+    qq = ri.qq55;
+  } else if  ((type1 == 0 && type2 == 5) || (type1 == 5 && type2 == 0))  {
+    a = ri.a16;
+    b = ri.b16;
+    c = ri.c16;
+    qq = ri.qq16;
+  } else if ((type1 == 1 && type2 == 5) || (type1 == 5 && type2 == 1))  {
+    a = ri.a26;
+    b = ri.b26;
+    c = ri.c26;
+    qq = ri.qq26;
+  } else if ((type1 == 2 && type2 == 5) || (type1 == 5 && type2 == 2))  {
+    a = ri.a36;
+    b = ri.b36;
+    c = ri.c36;
+    qq = ri.qq36;
+  } else if ((type1 == 3 && type2 == 5) || (type1 == 5 && type2 == 3))  {
+    a = ri.a46;
+    b = ri.b46;
+    c = ri.c46;
+    qq = ri.qq46;
+  } else if ((type1 == 4 && type2 == 5) || (type1 == 5 && type2 == 4))  {
+    a = ri.a56;
+    b = ri.b56;
+    c = ri.c56;
+    qq = ri.qq56;
+  } else if (type1 == 5 && type2 == 5) {
+    a = ri.a66;
+    b = ri.b66;
+    c = ri.c66;
+    qq = ri.qq66;
   }
 
   double d12 = sqrt(d12sq);
